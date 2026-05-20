@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum AppointmentStatus {
+  PENDING
+  APPROVED
+  CANCELLED
+  COMPLETED
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(STAFF)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  title        String
+  description  String
+  price        Float
+  duration     Int
+  image        String?
+  publicId     String?
+  category     String
+  isActive     Boolean       @default(true)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("services")
+}
+
+model Barber {
+  id           String        @id @default(cuid())
+  name         String
+  specialty    String
+  experience   Int
+  bio          String?
+  image        String?
+  publicId     String?
+  isActive     Boolean       @default(true)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("barbers")
+}
+
+model Appointment {
+  id            String            @id @default(cuid())
+  customerName  String
+  customerEmail String
+  customerPhone String
+  date          DateTime
+  time          String
+  notes         String?
+  status        AppointmentStatus @default(PENDING)
+  service       Service           @relation(fields: [serviceId], references: [id])
+  serviceId     String
+  barber        Barber            @relation(fields: [barberId], references: [id])
+  barberId      String
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@map("appointments")
+}
+
+model Gallery {
+  id        String   @id @default(cuid())
+  url       String
+  publicId  String
+  caption   String?
+  category  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("gallery")
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  rating    Int
+  comment   String
+  avatar    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("testimonials")
+}
