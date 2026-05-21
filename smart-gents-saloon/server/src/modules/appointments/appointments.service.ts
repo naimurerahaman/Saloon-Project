@@ -2,10 +2,13 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common'
 import { AppointmentStatus } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service.js'
+import { MailService } from '../mail/mail.service.js'
+import type { AppointmentMailData } from '../mail/mail.service.js'
 import type { CreateAppointmentDto } from './dto/create-appointment.dto.js'
 import type { GetAppointmentsQueryDto } from './dto/get-appointments-query.dto.js'
 import type { GetAvailabilityQueryDto } from './dto/get-availability-query.dto.js'
@@ -60,11 +63,22 @@ function generateSlots(dayOfWeek: number): string[] {
 const SERVICE_FIELDS = { select: { id: true, title: true, category: true, duration: true } } as const
 const BARBER_FIELDS  = { select: { id: true, name: true, specialty: true } } as const
 
+// Full include used after create/update so we have everything for emails
+const FULL_INCLUDE = {
+  service: { select: { id: true, title: true, category: true, duration: true, price: true } },
+  barber:  { select: { id: true, name: true, specialty: true } },
+} as const
+
 // ─── Service ───────────────────────────────────────────────────────────────
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(AppointmentsService.name)
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mail: MailService,
+  ) {}
 
   // ── Read (admin) ──────────────────────────────────────────────────────────
 
@@ -137,7 +151,7 @@ export class AppointmentsService {
     }
 
     // ⑥ Create — snapshot service price at booking time
-    return this.prisma.appointment.create({
+    const appointment = await this.prisma.appointment.create({
       data: {
         customerName:  dto.customerName,
         customerEmail: dto.customerEmail,
@@ -149,30 +163,53 @@ export class AppointmentsService {
         serviceId:     dto.serviceId,
         barberId:      dto.barberId,
       },
-      include: {
-        service: { select: { id: true, title: true, duration: true } },
-        barber:  { select: { id: true, name: true } },
-      },
+      include: FULL_INCLUDE,
     })
+
+    // ⑦ Fire-and-forget: confirmation email — never blocks the response
+    this.mail
+      .sendBookingConfirmation(this.toMailData(appointment))
+      .catch((err: unknown) =>
+        this.logger.error(`Confirmation email failed for ${appointment.id}: ${String(err)}`),
+      )
+
+    return appointment
   }
 
   // ── Status management (admin) ─────────────────────────────────────────────
 
   async updateStatus(id: string, dto: UpdateAppointmentStatusDto) {
-    const appointment = await this.prisma.appointment.findUnique({ where: { id } })
-    if (!appointment) throw new NotFoundException(`Appointment ${id} not found`)
+    const existing = await this.prisma.appointment.findUnique({ where: { id } })
+    if (!existing) throw new NotFoundException(`Appointment ${id} not found`)
 
-    return this.prisma.appointment.update({
+    const appointment = await this.prisma.appointment.update({
       where: { id },
-      data: { status: dto.status },
-      include: { service: SERVICE_FIELDS, barber: BARBER_FIELDS },
+      data:  { status: dto.status },
+      include: FULL_INCLUDE,
     })
+
+    // Fire-and-forget status emails
+    const mailData = this.toMailData(appointment)
+    if (dto.status === AppointmentStatus.APPROVED) {
+      this.mail
+        .sendBookingApproval(mailData)
+        .catch((err: unknown) =>
+          this.logger.error(`Approval email failed for ${id}: ${String(err)}`),
+        )
+    } else if (dto.status === AppointmentStatus.CANCELLED) {
+      this.mail
+        .sendBookingCancellation(mailData)
+        .catch((err: unknown) =>
+          this.logger.error(`Cancellation email failed for ${id}: ${String(err)}`),
+        )
+    }
+
+    return appointment
   }
 
   // ── Availability (public) ─────────────────────────────────────────────────
 
   async getAvailability(query: GetAvailabilityQueryDto) {
-    // Validate barber & service exist
     const [barber, service] = await Promise.all([
       this.prisma.barber.findUnique({ where: { id: query.barberId } }),
       this.prisma.service.findUnique({ where: { id: query.serviceId } }),
@@ -192,7 +229,6 @@ export class AppointmentsService {
     const allSlots     = generateSlots(dayOfWeek)
     const closeMinutes = timeToMinutes(hours.close)
 
-    // Existing non-cancelled appointments for this barber on this date
     const booked = await this.prisma.appointment.findMany({
       where: {
         barberId: query.barberId,
@@ -202,7 +238,6 @@ export class AppointmentsService {
       include: { service: { select: { duration: true } } },
     })
 
-    // Current time — skip past slots if the requested date is today
     const now      = new Date()
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
     const nowMins  = query.date === todayStr ? now.getHours() * 60 + now.getMinutes() : -1
@@ -211,10 +246,9 @@ export class AppointmentsService {
       const slotStart = timeToMinutes(slot)
       const slotEnd   = slotStart + service.duration
 
-      if (nowMins >= 0 && slotStart <= nowMins) return false // past slot
-      if (slotEnd > closeMinutes)               return false // overruns business hours
+      if (nowMins >= 0 && slotStart <= nowMins) return false
+      if (slotEnd > closeMinutes)               return false
 
-      // Overlap check: [slotStart, slotEnd) vs [aptStart, aptEnd)
       return !booked.some((apt) => {
         const aptStart = timeToMinutes(apt.time)
         const aptEnd   = aptStart + apt.service.duration
@@ -252,5 +286,34 @@ export class AppointmentsService {
       const aptEnd   = aptStart + apt.service.duration
       return newStart < aptEnd && aptStart < newEnd
     })
+  }
+
+  /** Maps a Prisma appointment (with FULL_INCLUDE) to the mail data shape. */
+  private toMailData(
+    apt: {
+      id: string
+      customerName: string
+      customerEmail: string
+      customerPhone: string
+      date: Date
+      time: string
+      price: number
+      notes: string | null
+      service: { title: string }
+      barber: { name: string }
+    },
+  ): AppointmentMailData {
+    return {
+      bookingRef:    apt.id,
+      customerName:  apt.customerName,
+      customerEmail: apt.customerEmail,
+      customerPhone: apt.customerPhone,
+      serviceName:   apt.service.title,
+      barberName:    apt.barber.name,
+      date:          apt.date,
+      time:          apt.time,
+      price:         apt.price,
+      notes:         apt.notes,
+    }
   }
 }

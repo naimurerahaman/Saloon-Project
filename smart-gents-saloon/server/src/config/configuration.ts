@@ -20,8 +20,11 @@ export default () => ({
   },
 
   smtp: {
-    host: process.env['SMTP_HOST'],
-    user: process.env['SMTP_USER'],
-    pass: process.env['SMTP_PASS'],
+    host:       process.env['SMTP_HOST'],
+    port:       parseInt(process.env['SMTP_PORT'] ?? '587', 10),
+    user:       process.env['SMTP_USER'],
+    pass:       process.env['SMTP_PASS'],
+    from:       process.env['SMTP_FROM']       ?? process.env['SMTP_USER'] ?? 'noreply@smartgentssaloon.com',
+    adminEmail: process.env['ADMIN_EMAIL']     ?? process.env['SMTP_USER'],
   },
 })
