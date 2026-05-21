@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight, Scissors, ZoomIn } from 'lucide-react'
 import { GALLERY_CATEGORIES, type GalleryCategory, type GalleryEntry } from '@/lib/gallery'
 import Container from '@/components/ui/Container'
 
-// ─── animation variants ────────────────────────────────────────────────────
+// ─── Animation variants ────────────────────────────────────────────────────
 
 const containerVariants = {
   hidden: {},
@@ -18,7 +19,43 @@ const itemVariants = {
   show: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' as const } },
 }
 
-// ─── single card ───────────────────────────────────────────────────────────
+// ─── Image area — real photo or gradient placeholder ───────────────────────
+
+function GalleryImage({
+  item,
+  fill = false,
+  className = '',
+}: {
+  item: GalleryEntry
+  fill?: boolean
+  className?: string
+}) {
+  if (item.url) {
+    return (
+      <Image
+        src={item.url}
+        alt={item.label}
+        fill={fill}
+        sizes={fill ? '(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw' : undefined}
+        className={`object-cover ${className}`}
+        placeholder="empty"
+      />
+    )
+  }
+
+  // Fallback gradient placeholder
+  return (
+    <>
+      <div className={`absolute inset-0 bg-gradient-to-br ${item.gradientClass}`} />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-white/[0.02]" />
+      <div className="absolute inset-0 flex items-center justify-center opacity-[0.06]">
+        <Scissors size={48} className="text-gold rotate-45" />
+      </div>
+    </>
+  )
+}
+
+// ─── Single card ───────────────────────────────────────────────────────────
 
 function GalleryCard({
   item,
@@ -36,22 +73,15 @@ function GalleryCard({
       onClick={() => onOpen(index)}
     >
       <div className={`relative ${item.aspectClass} overflow-hidden`}>
-        {/* gradient bg */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${item.gradientClass}`} />
-        {/* inner shadow */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-white/[0.02]" />
-        {/* watermark */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.06]">
-          <Scissors size={48} className="text-gold rotate-45" />
-        </div>
+        <GalleryImage item={item} fill />
 
-        {/* default label */}
+        {/* category label */}
         <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/55 to-transparent group-hover:opacity-0 transition-opacity duration-300">
           <p className="text-white/45 text-[9px] tracking-[0.28em] uppercase">{item.category}</p>
         </div>
 
-        {/* gold bottom line */}
-        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-350 origin-center" />
+        {/* gold hover line */}
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
 
         {/* hover overlay */}
         <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2.5">
@@ -68,7 +98,7 @@ function GalleryCard({
   )
 }
 
-// ─── modal ─────────────────────────────────────────────────────────────────
+// ─── Modal ─────────────────────────────────────────────────────────────────
 
 function GalleryModal({
   item,
@@ -126,12 +156,8 @@ function GalleryModal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
           >
-            <div className={`relative aspect-[4/3] w-full overflow-hidden`}>
-              <div className={`absolute inset-0 bg-gradient-to-br ${item.gradientClass}`} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-white/[0.02]" />
-              <div className="absolute inset-0 flex items-center justify-center opacity-[0.07]">
-                <Scissors size={88} className="text-gold rotate-45" />
-              </div>
+            <div className="relative aspect-[4/3] w-full overflow-hidden">
+              <GalleryImage item={item} fill className="transition-transform duration-500 group-hover:scale-105" />
             </div>
           </motion.div>
         </AnimatePresence>
@@ -181,7 +207,7 @@ function GalleryModal({
   )
 }
 
-// ─── main component ────────────────────────────────────────────────────────
+// ─── Main component ────────────────────────────────────────────────────────
 
 export default function GalleryGrid({ items }: { items: GalleryEntry[] }) {
   const [activeCategory, setActiveCategory] = useState<GalleryCategory>('All')
@@ -192,7 +218,7 @@ export default function GalleryGrid({ items }: { items: GalleryEntry[] }) {
 
   const selectedItem = selectedIndex !== null ? filtered[selectedIndex] ?? null : null
 
-  const openModal = useCallback((index: number) => setSelectedIndex(index), [])
+  const openModal  = useCallback((index: number) => setSelectedIndex(index), [])
   const closeModal = useCallback(() => setSelectedIndex(null), [])
 
   const goPrev = useCallback(() => {
@@ -207,29 +233,28 @@ export default function GalleryGrid({ items }: { items: GalleryEntry[] }) {
     )
   }, [filtered.length])
 
-  // keyboard navigation
   useEffect(() => {
     if (selectedIndex === null) return
     const handle = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeModal()
-      if (e.key === 'ArrowLeft') goPrev()
-      if (e.key === 'ArrowRight') goNext()
+      if (e.key === 'Escape')      closeModal()
+      if (e.key === 'ArrowLeft')   goPrev()
+      if (e.key === 'ArrowRight')  goNext()
     }
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
   }, [selectedIndex, closeModal, goPrev, goNext])
 
-  // lock body scroll while modal is open
   useEffect(() => {
     document.body.style.overflow = selectedIndex !== null ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [selectedIndex])
 
-  // close modal when category changes
   const handleCategoryChange = (cat: GalleryCategory) => {
     setSelectedIndex(null)
     setActiveCategory(cat)
   }
+
+  const hasRealImages = items.some((i) => !!i.url)
 
   return (
     <>
@@ -311,12 +336,14 @@ export default function GalleryGrid({ items }: { items: GalleryEntry[] }) {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-center text-white/15 text-[10px] tracking-[0.35em] uppercase mt-10"
           >
-            Photography coming soon — visit us to see the craftsmanship firsthand
+            {hasRealImages
+              ? `${items.length} image${items.length !== 1 ? 's' : ''} · Powered by Cloudinary`
+              : 'Photography coming soon — visit us to see the craftsmanship firsthand'}
           </motion.p>
         </Container>
       </section>
 
-      {/* Modal — outside section so it overlays everything */}
+      {/* Modal */}
       <AnimatePresence>
         {selectedItem !== null && selectedIndex !== null && (
           <GalleryModal

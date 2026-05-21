@@ -49,8 +49,10 @@ Thumbs.db
 coverage/
 .nyc_output/
 
-# Uploads
-uploads/
+# Local file upload storage directories (not src/modules/uploads/ code)
+/uploads/
+server/uploads/
+client/uploads/
 
 # Prisma generated client
 src/generated/

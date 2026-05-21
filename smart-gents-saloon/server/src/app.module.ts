@@ -8,6 +8,8 @@ import { AuthModule } from './modules/auth/auth.module.js'
 import { ServicesModule } from './modules/services/services.module.js'
 import { BarbersModule } from './modules/barbers/barbers.module.js'
 import { AppointmentsModule } from './modules/appointments/appointments.module.js'
+import { UploadsModule } from './modules/uploads/uploads.module.js'
+import { GalleryModule } from './modules/gallery/gallery.module.js'
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard.js'
 import { RolesGuard } from './modules/auth/guards/roles.guard.js'
 import configuration from './config/configuration.js'
@@ -31,6 +33,8 @@ import configuration from './config/configuration.js'
     ServicesModule,
     BarbersModule,
     AppointmentsModule,
+    UploadsModule,
+    GalleryModule,
   ],
   controllers: [AppController],
   providers: [

@@ -15,8 +15,8 @@ logs/
 # Prisma generated client
 /generated/
 
-# Uploads
-uploads/
+# Local file upload storage (root-level only, not src/modules/uploads/)
+/uploads/
 
 # Coverage
 coverage/

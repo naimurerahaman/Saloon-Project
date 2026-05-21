@@ -3,12 +3,61 @@ export interface GalleryEntry {
   label: string
   category: string
   gradientClass: string
-  /** Tailwind aspect-ratio utility applied to each card */
   aspectClass: string
+  /** Cloudinary CDN URL — present for real uploaded images */
+  url?: string
+  /** Cloudinary public ID — used for admin deletion */
+  publicId?: string
 }
 
 export const GALLERY_CATEGORIES = ['All', 'Haircuts', 'Beard', 'Shave', 'Styling', 'Luxury'] as const
 export type GalleryCategory = (typeof GALLERY_CATEGORIES)[number]
+
+// ─── Presentation arrays (assigned cyclically to API items) ────────────────
+
+const GRADIENT_CLASSES = [
+  'from-stone-900 to-neutral-950',
+  'from-zinc-800 to-zinc-950',
+  'from-neutral-800 to-stone-950',
+  'from-stone-800 to-zinc-950',
+  'from-zinc-900 to-neutral-950',
+  'from-neutral-900 to-zinc-950',
+  'from-stone-700 to-neutral-900',
+  'from-zinc-700 to-stone-900',
+]
+
+const ASPECT_CLASSES = [
+  'aspect-[3/4]',
+  'aspect-square',
+  'aspect-[2/3]',
+  'aspect-[4/3]',
+] as const
+
+// ─── Raw API shape (from Gallery Prisma model) ─────────────────────────────
+
+interface ApiGalleryItem {
+  id: string
+  url: string
+  publicId: string
+  caption?: string | null
+  category?: string | null
+  isActive: boolean
+  sortOrder: number
+}
+
+function mapApiItem(item: ApiGalleryItem, index: number): GalleryEntry {
+  return {
+    id:            item.id,
+    label:         item.caption ?? 'Gallery',
+    category:      item.category ?? 'Haircuts',
+    url:           item.url,
+    publicId:      item.publicId,
+    gradientClass: GRADIENT_CLASSES[index % GRADIENT_CLASSES.length],
+    aspectClass:   ASPECT_CLASSES[index % ASPECT_CLASSES.length],
+  }
+}
+
+// ─── Static fallback (shown when API is unavailable) ──────────────────────
 
 export const GALLERY_FALLBACK: GalleryEntry[] = [
   // Haircuts
@@ -38,13 +87,17 @@ export const GALLERY_FALLBACK: GalleryEntry[] = [
   { id: '20', label: 'Signature Groom',    category: 'Luxury',   gradientClass: 'from-zinc-700 to-neutral-950',   aspectClass: 'aspect-square' },
 ]
 
+// ─── Data fetching ─────────────────────────────────────────────────────────
+
 export async function getGallery(): Promise<GalleryEntry[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/gallery`, {
       next: { revalidate: 600 },
     })
     if (!res.ok) throw new Error('Failed to fetch')
-    return res.json()
+    const raw: ApiGalleryItem[] = await res.json()
+    if (!Array.isArray(raw) || raw.length === 0) return GALLERY_FALLBACK
+    return raw.map(mapApiItem)
   } catch {
     return GALLERY_FALLBACK
   }
