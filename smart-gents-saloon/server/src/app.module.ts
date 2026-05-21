@@ -4,6 +4,9 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
 import { AppController } from './app.controller.js'
 import { PrismaModule } from './prisma/prisma.module.js'
+import { AuthModule } from './modules/auth/auth.module.js'
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard.js'
+import { RolesGuard } from './modules/auth/guards/roles.guard.js'
 import configuration from './config/configuration.js'
 
 @Module({
@@ -21,13 +24,14 @@ import configuration from './config/configuration.js'
       },
     ]),
     PrismaModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
+    // Guard execution order: throttle → jwt → roles
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule {}
