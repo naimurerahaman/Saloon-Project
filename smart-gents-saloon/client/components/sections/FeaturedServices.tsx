@@ -86,7 +86,7 @@ function ServiceCard({ service }: { service: Service }) {
 
       <div className="flex items-center justify-between pt-5 border-t border-white/[0.07]">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-gold font-bold text-lg">${service.price}</span>
+          <span className="text-gold font-bold text-lg">£{service.price}</span>
           <span className="text-white/28 text-xs">{service.duration}min</span>
         </div>
         <Link href={`/booking?service=${service.id}`} aria-label={`Book ${service.title}`}>

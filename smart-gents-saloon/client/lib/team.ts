@@ -83,6 +83,7 @@ export async function getTeam(): Promise<TeamMember[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/barbers`, {
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) throw new Error('Failed to fetch')
     const body = await res.json() as { data?: TeamMember[] } | TeamMember[]

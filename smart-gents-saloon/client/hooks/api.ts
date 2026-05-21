@@ -8,6 +8,17 @@ import type { Service } from '@/types'
 import type { BookingBarber, CreateAppointmentPayload, CreatedAppointment } from '@/lib/booking'
 import type { GalleryEntry } from '@/lib/gallery'
 
+// DB enum → display category map (mirrors lib/services.ts)
+const DB_CATEGORY_MAP: Record<string, string> = {
+  HAIRCUT:        'Haircut',
+  BEARD_TRIM:     'Beard',
+  HAIR_COLORING:  'Treatments',
+  FACIAL:         'Treatments',
+  HAIR_TREATMENT: 'Treatments',
+  SPA:            'Treatments',
+  GROOM_PACKAGE:  'Packages',
+}
+
 // ─── Services ─────────────────────────────────────────────────────────────
 
 export function useServices(category?: string) {
@@ -16,7 +27,9 @@ export function useServices(category?: string) {
     queryFn:  () =>
       api.get<Service[]>('/api/v1/services', {
         params: category ? { category } : {},
-      }).then((r) => r.data),
+      }).then((r) =>
+        r.data.map((s) => ({ ...s, category: DB_CATEGORY_MAP[s.category] ?? s.category }))
+      ),
     staleTime: 5 * 60 * 1000,
   })
 }

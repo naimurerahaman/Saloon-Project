@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trash2, Plus, Lock, Eye } from 'lucide-react'
@@ -127,7 +127,7 @@ function GalleryManager({ token }: { token: string }) {
   }, [token])
 
   // Load on first render
-  useState(() => { loadItems() })
+  useEffect(() => { loadItems() }, [loadItems])
 
   const handleUploaded = (result: UploadResult) => {
     setPending(result)

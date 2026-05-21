@@ -132,17 +132,17 @@ export default function Footer() {
               <li className="flex gap-3">
                 <MapPin size={14} className="text-gold mt-0.5 shrink-0" />
                 <span className="text-muted text-sm leading-relaxed">
-                  123 Grooming Street,<br />
-                  Dhaka, Bangladesh
+                  15 Savile Row,<br />
+                  London W1S 3PJ
                 </span>
               </li>
               <li className="flex gap-3">
                 <Phone size={14} className="text-gold mt-0.5 shrink-0" />
                 <a
-                  href="tel:+8801234567890"
+                  href="tel:+442071234567"
                   className="text-muted hover:text-gold text-sm transition-colors duration-200"
                 >
-                  +880 1234-567890
+                  +44 20 7123 4567
                 </a>
               </li>
             </ul>

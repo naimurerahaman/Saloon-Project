@@ -62,7 +62,7 @@ function ServiceCard({ service }: { service: Service }) {
         <div className="pt-5 border-t border-white/[0.07]">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-gold font-bold text-xl">${service.price}</span>
+              <span className="text-gold font-bold text-xl">£{service.price}</span>
             </div>
             <div className="flex items-center gap-1.5 text-white/28">
               <Clock size={11} />

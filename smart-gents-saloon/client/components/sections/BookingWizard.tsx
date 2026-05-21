@@ -122,7 +122,7 @@ function StepService({
               >
                 {s.title}
               </span>
-              <span className="text-gold font-semibold text-sm shrink-0">${s.price}</span>
+              <span className="text-gold font-semibold text-sm shrink-0">£{s.price}</span>
             </div>
             <p className="text-white/32 text-[12px] leading-relaxed line-clamp-2 mb-3">
               {s.description}
@@ -501,7 +501,7 @@ function StepConfirm({
     ['Date',     formatDate(date)],
     ['Time',     formatTime(time)],
     ['Duration', `${service.duration} min`],
-    ['Price',    `$${service.price}`],
+    ['Price',    `£${service.price}`],
     ['Name',     details.customerName],
     ['Email',    details.customerEmail],
     ['Phone',    details.customerPhone],
@@ -600,7 +600,7 @@ function SuccessView({ booking }: { booking: CreatedAppointment }) {
           ['Barber',   booking.barber.name],
           ['Date',     formatDate(booking.date)],
           ['Time',     formatTime(booking.time)],
-          ['Total',    `$${booking.price}`],
+          ['Total',    `£${booking.price}`],
           ['Ref',      booking.id.slice(0, 8).toUpperCase()],
         ].map(([label, value]) => (
           <div key={label} className="flex gap-4 px-5 py-3">

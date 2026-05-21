@@ -93,6 +93,7 @@ export async function getGallery(): Promise<GalleryEntry[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/gallery`, {
       next: { revalidate: 600 },
+      signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) throw new Error('Failed to fetch')
     const body = await res.json() as { data?: ApiGalleryItem[] } | ApiGalleryItem[]

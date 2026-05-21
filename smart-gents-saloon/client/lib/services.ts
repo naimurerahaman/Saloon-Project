@@ -114,15 +114,33 @@ export const SERVICES_FALLBACK: Service[] = [
 export const CATEGORIES = ['All', 'Haircut', 'Beard', 'Shave', 'Packages', 'Treatments'] as const
 export type ServiceCategory = (typeof CATEGORIES)[number]
 
+// Maps Prisma enum values (e.g. BEARD_TRIM) → display category strings used in UI filters.
+// Fallback data uses display strings directly; this ensures live API data is also normalised.
+const DB_CATEGORY_MAP: Record<string, ServiceCategory> = {
+  HAIRCUT:        'Haircut',
+  BEARD_TRIM:     'Beard',
+  HAIR_COLORING:  'Treatments',
+  FACIAL:         'Treatments',
+  HAIR_TREATMENT: 'Treatments',
+  SPA:            'Treatments',
+  GROOM_PACKAGE:  'Packages',
+}
+
+function normaliseCategory(raw: string): string {
+  return DB_CATEGORY_MAP[raw] ?? raw
+}
+
 export async function getServices(): Promise<Service[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/services`, {
       next: { revalidate: 300 },
+      signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) throw new Error('Failed to fetch')
     const body = await res.json() as { data?: Service[] } | Service[]
     const list = Array.isArray(body) ? body : (body.data ?? [])
-    return list.length ? list : SERVICES_FALLBACK
+    const normalised = list.map((s) => ({ ...s, category: normaliseCategory(s.category) }))
+    return normalised.length ? normalised : SERVICES_FALLBACK
   } catch {
     return SERVICES_FALLBACK
   }

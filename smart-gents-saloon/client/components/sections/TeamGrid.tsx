@@ -149,7 +149,7 @@ function FounderStrip({ member }: { member: TeamMember }) {
           href={`/booking?barber=${member.id}`}
           className="inline-flex items-center gap-2 px-6 py-2.5 border border-gold/35 text-gold/80 text-[10px] tracking-[0.25em] uppercase hover:border-gold hover:text-gold hover:bg-gold/5 transition-all duration-200"
         >
-          Book James
+          Book {member.name.split(' ')[0]}
           <ArrowRight size={10} />
         </Link>
       </div>

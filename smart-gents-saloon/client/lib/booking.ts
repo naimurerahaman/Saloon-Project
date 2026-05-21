@@ -68,6 +68,7 @@ export async function getBookingBarbers(): Promise<BookingBarber[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/barbers`, {
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) throw new Error('Failed to fetch')
     const data = await res.json()
@@ -99,7 +100,9 @@ export async function getAvailableSlots(
       { cache: 'no-store' },
     )
     if (!res.ok) throw new Error('Failed to fetch availability')
-    const data: AvailabilityResponse = await res.json()
+    const body = await res.json() as { data?: AvailabilityResponse } | AvailabilityResponse
+    // Unwrap TransformInterceptor envelope if present
+    const data: AvailabilityResponse = ('data' in body && body.data) ? body.data : (body as AvailabilityResponse)
     return data.availableSlots ?? []
   } catch {
     return generateFallbackSlots(date)
