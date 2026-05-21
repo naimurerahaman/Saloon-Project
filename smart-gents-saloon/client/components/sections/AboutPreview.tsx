@@ -20,8 +20,8 @@ export default function AboutPreview() {
 
           {/* Left: Visual block */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className="relative pb-10 lg:pb-0"
@@ -64,8 +64,8 @@ export default function AboutPreview() {
 
           {/* Right: Text */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.8, ease: 'easeOut', delay: 0.12 }}
           >

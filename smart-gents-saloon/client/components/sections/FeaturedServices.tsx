@@ -66,7 +66,7 @@ const card = {
 
 export default function FeaturedServices() {
   return (
-    <section className="bg-background py-16 md:py-24 lg:py-28">
+    <section className="bg-background py-16 md:py-24 lg:py-28 overflow-x-hidden">
       <Container>
 
         {/* Section header */}

@@ -33,7 +33,7 @@ const galleryItem = {
 
 export default function GalleryPreview() {
   return (
-    <section className="bg-card py-16 md:py-24 lg:py-28">
+    <section className="bg-card py-16 md:py-24 lg:py-28 overflow-x-hidden">
       <Container>
 
         {/* Header */}
