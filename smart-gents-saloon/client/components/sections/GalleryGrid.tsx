@@ -25,10 +25,12 @@ function GalleryImage({
   item,
   fill = false,
   className = '',
+  priority = false,
 }: {
   item: GalleryEntry
   fill?: boolean
   className?: string
+  priority?: boolean
 }) {
   if (item.url) {
     return (
@@ -38,6 +40,7 @@ function GalleryImage({
         fill={fill}
         sizes={fill ? '(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw' : undefined}
         className={`object-cover ${className}`}
+        priority={priority}
         placeholder="empty"
       />
     )
@@ -73,7 +76,8 @@ function GalleryCard({
       onClick={() => onOpen(index)}
     >
       <div className={`relative ${item.aspectClass} overflow-hidden`}>
-        <GalleryImage item={item} fill />
+        {/* First 4 images are above the fold — load eagerly for LCP */}
+        <GalleryImage item={item} fill priority={index < 4} />
 
         {/* category label */}
         <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/55 to-transparent group-hover:opacity-0 transition-opacity duration-300">
