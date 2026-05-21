@@ -1,0 +1,55 @@
+# Railway deployment configuration
+# Docs: https://docs.railway.app/reference/config-as-code
+
+[build]
+builder = "nixpacks"
+
+# Install all deps (including devDeps for nest build + prisma generate),
+# then compile TypeScript to dist/.
+buildCommand = "npx prisma generate && npm run build"
+
+[deploy]
+# Run pending migrations then start the compiled server.
+startCommand = "npm run start:migrate"
+
+# Railway injects PORT automatically; NestJS reads it from configuration.ts.
+# No need to hard-code the port here.
+
+# Health check — Railway polls this path after deploy to confirm the service
+# is healthy before routing traffic.
+healthcheckPath = "/api/v1/health"
+
+# Seconds Railway waits for the health check to pass (includes cold-start time).
+healthcheckTimeout = 300
+
+# Restart the service automatically if the process exits with a non-zero code.
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[[deploy.environmentVariables]]
+# Required environment variables — set these in the Railway dashboard
+# under the service's "Variables" tab.
+#
+# DATABASE_URL       — Provided automatically when you add a PostgreSQL plugin.
+#                      Format: postgresql://user:pass@host:5432/db?sslmode=require
+#
+# PORT               — Set automatically by Railway; do NOT override.
+#
+# FRONTEND_URL       — Your Vercel production URL (no trailing slash).
+#                      Example: https://smartgentssaloon.com
+#
+# JWT_SECRET         — Long random string (min 32 chars). Use: openssl rand -hex 32
+# JWT_EXPIRES_IN     — e.g. 15m
+# JWT_REFRESH_SECRET — Long random string, different from JWT_SECRET.
+# JWT_REFRESH_EXPIRES_IN — e.g. 7d
+#
+# CLOUDINARY_NAME    — Your Cloudinary cloud name.
+# CLOUDINARY_KEY     — Your Cloudinary API key.
+# CLOUDINARY_SECRET  — Your Cloudinary API secret.
+#
+# SMTP_HOST          — SMTP server host. e.g. smtp.gmail.com
+# SMTP_PORT          — SMTP port. 587 for TLS, 465 for SSL.
+# SMTP_USER          — SMTP login (usually your email address).
+# SMTP_PASS          — SMTP password or App Password.
+# SMTP_FROM          — Sender name + address. e.g. "Smart Gents Saloon <noreply@example.com>"
+# ADMIN_EMAIL        — Email to receive new booking notifications.
