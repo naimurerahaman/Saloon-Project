@@ -2,57 +2,35 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Scissors, Star, Sparkles, Zap, ArrowRight } from 'lucide-react'
+import { Scissors, Star, Sparkles, Zap, ArrowRight, Layers, Shield } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useServices } from '@/hooks/api'
+import type { Service } from '@/types'
 import Container from '@/components/ui/Container'
+import { cn } from '@/lib/utils'
 
-interface ServiceCard {
-  id: string
-  icon: LucideIcon
-  title: string
-  description: string
-  price: number
-  duration: number
+// ─── Category → icon (matches both DB enum and display strings) ────────────
+
+const ICON_MAP: [string, LucideIcon][] = [
+  ['haircut', Scissors],
+  ['beard',   Star],
+  ['shave',   Sparkles],
+  ['package', Layers],
+  ['groom',   Layers],
+  ['treat',   Shield],
+  ['facial',  Shield],
+  ['spa',     Shield],
+]
+
+function categoryIcon(category: string): LucideIcon {
+  const lower = category.toLowerCase()
+  for (const [key, Icon] of ICON_MAP) {
+    if (lower.includes(key)) return Icon
+  }
+  return Zap
 }
 
-const services: ServiceCard[] = [
-  {
-    id: '1',
-    icon: Scissors,
-    title: 'Signature Haircut',
-    description:
-      'Precision cut tailored to your face shape and lifestyle. Includes consultation, scalp massage, shampoo, and styling.',
-    price: 45,
-    duration: 60,
-  },
-  {
-    id: '2',
-    icon: Star,
-    title: 'Beard & Shape Up',
-    description:
-      'Expert beard sculpting and sharp line-up to frame your face perfectly. Hot towel finish and conditioning balm included.',
-    price: 35,
-    duration: 45,
-  },
-  {
-    id: '3',
-    icon: Sparkles,
-    title: 'Royal Shave',
-    description:
-      'The ultimate straight-razor experience. Pre-shave oil, steam towel, premium lather, and aftershave balm — pure ritual.',
-    price: 55,
-    duration: 60,
-  },
-  {
-    id: '4',
-    icon: Zap,
-    title: 'The Full Works',
-    description:
-      'Haircut, beard trim, and luxury shave combined. The complete grooming session for the modern gentleman.',
-    price: 110,
-    duration: 120,
-  },
-]
+// ─── Animations ────────────────────────────────────────────────────────────
 
 const container = {
   hidden: {},
@@ -64,12 +42,77 @@ const card = {
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 }
 
+// ─── Skeleton card ─────────────────────────────────────────────────────────
+
+function SkeletonCard() {
+  return (
+    <div className="bg-card p-8 flex flex-col animate-pulse">
+      <div className="w-11 h-11 border border-white/[0.06] bg-white/[0.04] mb-7" />
+      <div className="h-3.5 w-3/4 bg-white/[0.06] rounded-sm mb-3" />
+      <div className="space-y-1.5 flex-1 mb-6">
+        <div className="h-2.5 w-full  bg-white/[0.04] rounded-sm" />
+        <div className="h-2.5 w-11/12 bg-white/[0.04] rounded-sm" />
+        <div className="h-2.5 w-4/5  bg-white/[0.04] rounded-sm" />
+      </div>
+      <div className="flex items-center justify-between pt-5 border-t border-white/[0.07]">
+        <div className="h-4 w-14 bg-white/[0.06] rounded-sm" />
+        <div className="h-3 w-10 bg-white/[0.04] rounded-sm" />
+      </div>
+    </div>
+  )
+}
+
+// ─── Service card ──────────────────────────────────────────────────────────
+
+function ServiceCard({ service }: { service: Service }) {
+  const Icon = categoryIcon(service.category)
+  return (
+    <motion.div
+      variants={card}
+      className="group bg-card p-8 flex flex-col hover:bg-white/[0.02] transition-colors duration-300"
+    >
+      <div className="mb-7">
+        <div className="w-11 h-11 border border-gold/20 flex items-center justify-center group-hover:border-gold/50 group-hover:bg-gold/5 transition-all duration-300">
+          <Icon size={18} className="text-gold" />
+        </div>
+      </div>
+
+      <h3 className="text-white text-sm font-semibold mb-3 group-hover:text-gold transition-colors duration-200 line-clamp-1">
+        {service.title}
+      </h3>
+      <p className={cn('text-white/38 text-[13px] leading-relaxed flex-1 mb-6', 'line-clamp-3')}>
+        {service.description}
+      </p>
+
+      <div className="flex items-center justify-between pt-5 border-t border-white/[0.07]">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-gold font-bold text-lg">${service.price}</span>
+          <span className="text-white/28 text-xs">{service.duration}min</span>
+        </div>
+        <Link href={`/booking?service=${service.id}`} aria-label={`Book ${service.title}`}>
+          <ArrowRight
+            size={13}
+            className="text-white/18 group-hover:text-gold group-hover:translate-x-0.5 transition-all duration-200"
+          />
+        </Link>
+      </div>
+    </motion.div>
+  )
+}
+
+// ─── Section ───────────────────────────────────────────────────────────────
+
 export default function FeaturedServices() {
+  const { data: services, isLoading, isError } = useServices()
+
+  // Cap at 4 for the homepage preview
+  const featured = services?.slice(0, 4)
+
   return (
     <section className="bg-background py-16 md:py-24 lg:py-28 overflow-x-hidden">
       <Container>
 
-        {/* Section header */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 22 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -91,52 +134,26 @@ export default function FeaturedServices() {
           </p>
         </motion.div>
 
-        {/* Services grid */}
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-60px' }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.05]"
-        >
-          {services.map((service) => {
-            const Icon = service.icon
-            return (
-              <motion.div
-                key={service.id}
-                variants={card}
-                className="group bg-card p-8 flex flex-col hover:bg-white/[0.02] transition-colors duration-300"
-              >
-                {/* Icon container */}
-                <div className="mb-7">
-                  <div className="w-11 h-11 border border-gold/20 flex items-center justify-center group-hover:border-gold/50 group-hover:bg-gold/5 transition-all duration-300">
-                    <Icon size={18} className="text-gold" />
-                  </div>
-                </div>
+        {/* Grid — skeleton while loading, cards when ready */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.05]">
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : isError || !featured?.length ? (
+          <p className="text-center text-white/20 text-sm py-12">Services unavailable — check back soon.</p>
+        ) : (
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: '-60px' }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.05]"
+          >
+            {featured.map((s) => <ServiceCard key={s.id} service={s} />)}
+          </motion.div>
+        )}
 
-                <h3 className="text-white text-sm font-semibold mb-3 group-hover:text-gold transition-colors duration-200">
-                  {service.title}
-                </h3>
-                <p className="text-white/38 text-[13px] leading-relaxed flex-1 mb-6">
-                  {service.description}
-                </p>
-
-                <div className="flex items-center justify-between pt-5 border-t border-white/[0.07]">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-gold font-bold text-lg">${service.price}</span>
-                    <span className="text-white/28 text-xs">{service.duration}min</span>
-                  </div>
-                  <ArrowRight
-                    size={13}
-                    className="text-white/18 group-hover:text-gold group-hover:translate-x-0.5 transition-all duration-200"
-                  />
-                </div>
-              </motion.div>
-            )
-          })}
-        </motion.div>
-
-        {/* View all CTA */}
+        {/* View all */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}

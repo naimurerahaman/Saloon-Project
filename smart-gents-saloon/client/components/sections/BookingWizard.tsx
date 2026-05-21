@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Clock,
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import type { Service } from '@/types'
 import type { BookingBarber, CreatedAppointment } from '@/lib/booking'
-import { getAvailableSlots, createAppointment } from '@/lib/booking'
+import { useAvailability, useCreateAppointment } from '@/hooks/api'
 import Container from '@/components/ui/Container'
 import { cn } from '@/lib/utils'
 
@@ -216,9 +216,11 @@ function StepSchedule({
   onDateChange: (d: string) => void
   onTimeChange: (t: string) => void
 }) {
-  const [slots, setSlots]       = useState<string[]>([])
-  const [loading, setLoading]   = useState(false)
-  const [fetchErr, setFetchErr] = useState('')
+  const {
+    data: slots = [],
+    isLoading: loading,
+    isError: hasFetchErr,
+  } = useAvailability(barberId, serviceId, date)
 
   // Tomorrow as min date (YYYY-MM-DD)
   const minDate = (() => {
@@ -226,25 +228,6 @@ function StepSchedule({
     d.setDate(d.getDate() + 1)
     return d.toISOString().slice(0, 10)
   })()
-
-  const fetchSlots = useCallback(async (d: string) => {
-    if (!d) return
-    setLoading(true)
-    setFetchErr('')
-    setSlots([])
-    try {
-      const available = await getAvailableSlots(barberId, serviceId, d)
-      setSlots(available)
-    } catch {
-      setFetchErr('Could not load availability — showing typical hours.')
-    } finally {
-      setLoading(false)
-    }
-  }, [barberId, serviceId])
-
-  useEffect(() => {
-    if (date) fetchSlots(date)
-  }, [date, fetchSlots])
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onDateChange(e.target.value)
@@ -295,14 +278,14 @@ function StepSchedule({
             </div>
           )}
 
-          {fetchErr && !loading && (
+          {hasFetchErr && !loading && (
             <div className="flex items-center gap-2 text-white/40 text-[12px] mb-4">
               <AlertCircle size={12} className="text-gold/50 shrink-0" />
-              {fetchErr}
+              Could not load availability — showing typical hours.
             </div>
           )}
 
-          {!loading && slots.length === 0 && !fetchErr && (
+          {!loading && slots.length === 0 && !hasFetchErr && (
             <p className="text-white/30 text-sm">No available slots for this date.</p>
           )}
 
@@ -676,8 +659,7 @@ export default function BookingWizard({
   const [step, setStep]           = useState(1)
   const [direction, setDirection] = useState<1 | -1>(1)
   const [confirmed, setConfirmed] = useState<CreatedAppointment | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState('')
+  const apptMutation = useCreateAppointment()
 
   // Booking state
   const [serviceId, setServiceId] = useState(initialServiceId ?? '')
@@ -700,11 +682,9 @@ export default function BookingWizard({
     4: Object.keys(validateDetails(details)).length === 0,
   }
 
-  const handleConfirm = async () => {
-    setSubmitting(true)
-    setSubmitError('')
-    try {
-      const result = await createAppointment({
+  const handleConfirm = () => {
+    apptMutation.mutate(
+      {
         serviceId,
         barberId,
         date,
@@ -713,13 +693,9 @@ export default function BookingWizard({
         customerEmail: details.customerEmail,
         customerPhone: details.customerPhone,
         ...(details.notes.trim() ? { notes: details.notes } : {}),
-      })
-      setConfirmed(result)
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
-    } finally {
-      setSubmitting(false)
-    }
+      },
+      { onSuccess: (data) => setConfirmed(data) },
+    )
   }
 
   const selectedService = services.find((s) => s.id === serviceId)
@@ -794,8 +770,8 @@ export default function BookingWizard({
                     time={time}
                     details={details}
                     onConfirm={handleConfirm}
-                    loading={submitting}
-                    error={submitError}
+                    loading={apptMutation.isPending}
+                    error={apptMutation.error?.message ?? ''}
                   />
                 )}
               </motion.div>

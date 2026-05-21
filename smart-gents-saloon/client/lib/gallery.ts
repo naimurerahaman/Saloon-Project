@@ -45,7 +45,7 @@ interface ApiGalleryItem {
   sortOrder: number
 }
 
-function mapApiItem(item: ApiGalleryItem, index: number): GalleryEntry {
+export function mapApiGalleryItem(item: ApiGalleryItem, index: number): GalleryEntry {
   return {
     id:            item.id,
     label:         item.caption ?? 'Gallery',
@@ -95,9 +95,11 @@ export async function getGallery(): Promise<GalleryEntry[]> {
       next: { revalidate: 600 },
     })
     if (!res.ok) throw new Error('Failed to fetch')
-    const raw: ApiGalleryItem[] = await res.json()
-    if (!Array.isArray(raw) || raw.length === 0) return GALLERY_FALLBACK
-    return raw.map(mapApiItem)
+    const body = await res.json() as { data?: ApiGalleryItem[] } | ApiGalleryItem[]
+    // Unwrap TransformInterceptor envelope if present
+    const raw = Array.isArray(body) ? body : (body.data ?? [])
+    if (raw.length === 0) return GALLERY_FALLBACK
+    return raw.map(mapApiGalleryItem)
   } catch {
     return GALLERY_FALLBACK
   }

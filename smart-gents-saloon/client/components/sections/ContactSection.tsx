@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { toast } from 'sonner'
 import {
   MapPin, Phone, Mail, Clock, MessageCircle,
   Send, CheckCircle, ChevronDown, ArrowRight,
@@ -139,9 +140,17 @@ function ContactForm() {
     if (Object.keys(errs).length) return
 
     setStatus('submitting')
-    // TODO: replace with POST /api/v1/contact
-    await new Promise((r) => setTimeout(r, 1200))
-    setStatus('success')
+    try {
+      // TODO: replace with POST /api/v1/contact
+      await new Promise((r) => setTimeout(r, 1200))
+      setStatus('success')
+      toast.success('Message sent!', { description: "We'll get back to you within 24 hours." })
+    } catch {
+      setStatus('idle')
+      toast.error('Failed to send message', {
+        description: 'Please try again or contact us directly.',
+      })
+    }
   }
 
   if (status === 'success') {

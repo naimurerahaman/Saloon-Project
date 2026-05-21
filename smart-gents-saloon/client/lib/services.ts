@@ -120,7 +120,9 @@ export async function getServices(): Promise<Service[]> {
       next: { revalidate: 300 },
     })
     if (!res.ok) throw new Error('Failed to fetch')
-    return res.json()
+    const body = await res.json() as { data?: Service[] } | Service[]
+    const list = Array.isArray(body) ? body : (body.data ?? [])
+    return list.length ? list : SERVICES_FALLBACK
   } catch {
     return SERVICES_FALLBACK
   }

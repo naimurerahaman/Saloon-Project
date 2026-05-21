@@ -85,7 +85,9 @@ export async function getTeam(): Promise<TeamMember[]> {
       next: { revalidate: 3600 },
     })
     if (!res.ok) throw new Error('Failed to fetch')
-    return res.json()
+    const body = await res.json() as { data?: TeamMember[] } | TeamMember[]
+    const list = Array.isArray(body) ? body : (body.data ?? [])
+    return list.length ? list : TEAM_FALLBACK
   } catch {
     return TEAM_FALLBACK
   }
