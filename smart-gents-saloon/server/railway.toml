@@ -6,7 +6,7 @@ builder = "nixpacks"
 
 # Install all deps (including devDeps for nest build + prisma generate),
 # then compile TypeScript to dist/.
-buildCommand = "npm run build"
+buildCommand = "npx prisma generate && npm run build"
 
 [deploy]
 # Run pending migrations then start the compiled server.
