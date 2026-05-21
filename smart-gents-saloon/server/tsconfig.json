@@ -22,4 +22,8 @@
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true
   }
+  "include": [
+    "src/**/*", 
+    "prisma.config.ts"
+  ]
 }
