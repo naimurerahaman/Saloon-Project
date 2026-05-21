@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Award, Scissors, Star, Clock, Users, Shield } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import Container from '@/components/ui/Container'
 
 interface Feature {
   icon: LucideIcon
@@ -61,11 +62,11 @@ const item = {
 
 export default function WhyChooseUs() {
   return (
-    <section className="bg-card py-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-card py-16 md:py-24 lg:py-28">
+      <Container>
 
         {/* Header */}
-        <div className="grid lg:grid-cols-2 gap-10 items-end mb-20">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 items-end mb-12 lg:mb-20">
           <motion.div
             initial={{ opacity: 0, y: 22 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -101,7 +102,7 @@ export default function WhyChooseUs() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-60px' }}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.05]"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.05]"
         >
           {features.map((feature) => {
             const Icon = feature.icon
@@ -126,7 +127,7 @@ export default function WhyChooseUs() {
             )
           })}
         </motion.div>
-      </div>
+      </Container>
     </section>
   )
 }

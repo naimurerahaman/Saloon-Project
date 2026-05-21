@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Scissors, Star, Sparkles, Zap, ArrowRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import Container from '@/components/ui/Container'
 
 interface ServiceCard {
   id: string
@@ -65,8 +66,8 @@ const card = {
 
 export default function FeaturedServices() {
   return (
-    <section className="bg-background py-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-background py-16 md:py-24 lg:py-28">
+      <Container>
 
         {/* Section header */}
         <motion.div
@@ -96,7 +97,7 @@ export default function FeaturedServices() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-60px' }}
-          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.05]"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.05]"
         >
           {services.map((service) => {
             const Icon = service.icon
@@ -151,7 +152,7 @@ export default function FeaturedServices() {
             <ArrowRight size={11} />
           </Link>
         </motion.div>
-      </div>
+      </Container>
     </section>
   )
 }

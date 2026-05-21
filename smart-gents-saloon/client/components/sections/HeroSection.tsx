@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import { Scissors, ChevronDown } from 'lucide-react'
+import Container from '@/components/ui/Container'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
@@ -52,10 +53,8 @@ export default function HeroSection() {
         style={{ transformOrigin: 'top' }}
       />
 
-      <motion.div
-        style={{ y, opacity }}
-        className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20"
-      >
+      <motion.div style={{ y, opacity }} className="relative z-10 w-full">
+        <Container className="pt-24 sm:pt-32 pb-16 sm:pb-20">
         <motion.div
           variants={stagger}
           initial="hidden"
@@ -125,6 +124,7 @@ export default function HeroSection() {
             ))}
           </motion.div>
         </motion.div>
+        </Container>
       </motion.div>
 
       {/* Scroll indicator */}

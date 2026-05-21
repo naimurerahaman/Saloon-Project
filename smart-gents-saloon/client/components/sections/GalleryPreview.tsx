@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, Eye, Scissors } from 'lucide-react'
+import Container from '@/components/ui/Container'
 
 interface GalleryItem {
   id: string
@@ -32,8 +33,8 @@ const galleryItem = {
 
 export default function GalleryPreview() {
   return (
-    <section className="bg-card py-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-card py-16 md:py-24 lg:py-28">
+      <Container>
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
@@ -99,7 +100,7 @@ export default function GalleryPreview() {
               </div>
 
               {/* Gold accent bottom line */}
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold/40 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-400 origin-center" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold/40 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
 
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-background/65 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-3">
@@ -124,7 +125,7 @@ export default function GalleryPreview() {
         >
           Photography coming soon — visit us to see the craftsmanship firsthand
         </motion.p>
-      </div>
+      </Container>
     </section>
   )
 }

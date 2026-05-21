@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react'
+import Container from '@/components/ui/Container'
 
 interface TestimonialData {
   id: string
@@ -90,8 +91,8 @@ export default function Testimonials() {
   }
 
   return (
-    <section className="bg-background py-28 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-background py-16 md:py-24 lg:py-28 overflow-hidden">
+      <Container>
 
         {/* Header */}
         <motion.div
@@ -183,7 +184,7 @@ export default function Testimonials() {
             </div>
           </div>
         </div>
-      </div>
+      </Container>
     </section>
   )
 }

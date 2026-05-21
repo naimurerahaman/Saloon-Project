@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Calendar, Phone } from 'lucide-react'
+import Container from '@/components/ui/Container'
 
 const hours = [
   { days: 'Mon – Fri', time: '9:00 – 21:00' },
@@ -12,7 +13,7 @@ const hours = [
 
 export default function CTASection() {
   return (
-    <section className="relative bg-background py-28 overflow-hidden">
+    <section className="relative bg-background py-16 md:py-24 lg:py-28 overflow-hidden">
       {/* Decorative background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(200,169,107,0.07)_0%,transparent_65%)]" />
@@ -20,7 +21,7 @@ export default function CTASection() {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <Container className="relative text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -70,7 +71,7 @@ export default function CTASection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.35 }}
-            className="inline-flex flex-wrap justify-center gap-x-10 gap-y-4 py-6 px-8 sm:px-12 border border-white/[0.07] bg-card/40"
+            className="inline-flex flex-wrap justify-center gap-x-8 gap-y-4 py-5 px-6 sm:px-10 border border-white/[0.07] bg-card/40 w-full max-w-lg mx-auto sm:w-auto"
           >
             {hours.map((h) => (
               <div key={h.days} className="flex flex-col items-center gap-1.5">
@@ -80,7 +81,7 @@ export default function CTASection() {
             ))}
           </motion.div>
         </motion.div>
-      </div>
+      </Container>
     </section>
   )
 }

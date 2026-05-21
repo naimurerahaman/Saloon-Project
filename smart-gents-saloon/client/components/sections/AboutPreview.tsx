@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, Scissors } from 'lucide-react'
+import Container from '@/components/ui/Container'
 
 const stats = [
   { value: '2014', label: 'Est.' },
@@ -13,9 +14,9 @@ const stats = [
 
 export default function AboutPreview() {
   return (
-    <section className="bg-card py-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-16 xl:gap-24 items-center">
+    <section className="bg-card py-16 md:py-24 lg:py-28">
+      <Container>
+        <div className="grid lg:grid-cols-2 gap-10 md:gap-16 xl:gap-24 items-center">
 
           {/* Left: Visual block */}
           <motion.div
@@ -23,11 +24,12 @@ export default function AboutPreview() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="relative"
+            className="relative pb-10 lg:pb-0"
           >
-            {/* Decorative outer frames */}
+            {/* Decorative frame — offset kept within gutter at every breakpoint */}
             <div className="absolute -top-4 -left-4 right-4 bottom-4 border border-gold/8 pointer-events-none" />
-            <div className="absolute -top-8 -left-8 right-8 bottom-8 border border-gold/4 pointer-events-none hidden sm:block" />
+            {/* Outer frame only on lg+ where gutter (32px) safely absorbs the -32px offset */}
+            <div className="absolute -top-8 -left-8 right-8 bottom-8 border border-gold/4 pointer-events-none hidden lg:block" />
 
             {/* Main box */}
             <div className="relative aspect-[4/3] bg-background overflow-hidden">
@@ -47,13 +49,13 @@ export default function AboutPreview() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-dark via-gold to-gold-light" />
             </div>
 
-            {/* Floating stat badge */}
+            {/* Floating stat badge — right-0 on mobile keeps it within bounds */}
             <motion.div
               initial={{ opacity: 0, scale: 0.82 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.55, delay: 0.45, ease: 'easeOut' }}
-              className="absolute -bottom-6 -right-4 sm:-right-6 bg-gold px-6 py-5 min-w-[130px]"
+              className="absolute -bottom-8 right-0 lg:-right-6 bg-gold px-6 py-5 min-w-[130px]"
             >
               <p className="text-background font-serif text-3xl font-bold leading-none">10+</p>
               <p className="text-background/65 text-[10px] tracking-[0.28em] uppercase mt-1.5">Years of Craft</p>
@@ -109,7 +111,7 @@ export default function AboutPreview() {
             </Link>
           </motion.div>
         </div>
-      </div>
+      </Container>
     </section>
   )
 }
